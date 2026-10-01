@@ -1,18 +1,26 @@
-const themes = {
+export default {
   dark: {
-    backgroundColor: "#0f172a",
+    backgroundColor: "#111827",
     textColor: "#ffffff",
   },
-
   light: {
-    backgroundColor: "#f3f4f6",
-    textColor: "#111827",
+    backgroundColor: "#f8fafc",
+    textColor: "#0f172a",
   },
-
   purple: {
-    backgroundColor: "#581c87",
+    backgroundColor: "#7F00FF",
     textColor: "#ffffff",
   },
+  brutalist: {
+    backgroundColor: "#000000",
+    textColor: "#ffffff",
+  },
+  editorial: {
+    backgroundColor: "#fafafa",
+    textColor: "#1a1a1a",
+  },
+  vibrant: {
+    backgroundColor: "#ffcc00",
+    textColor: "#000000",
+  }
 };
-
-export default themes;

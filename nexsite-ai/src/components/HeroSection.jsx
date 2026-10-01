@@ -109,28 +109,12 @@ function HeroSection({
         style={{
           position: "relative",
 
-          zIndex: 1,
-
-          fontSize: "72px",
-
-          fontWeight: "800",
-
+          margin: 0,
+          fontSize: "4rem",
+          fontWeight: "900",
+          letterSpacing: "-1px",
           lineHeight: "1.1",
-
-          letterSpacing: "-2px",
-
-          marginBottom: "24px",
-
-          background:
-            "linear-gradient(90deg,#ffffff,#c084fc,#60a5fa)",
-
-          WebkitBackgroundClip: "text",
-
-          WebkitTextFillColor:
-            "transparent",
-
-          textShadow:
-            "0 0 40px rgba(168,85,247,0.35)",
+          color: "var(--current-text, #ffffff)",
         }}
       >
         {title}

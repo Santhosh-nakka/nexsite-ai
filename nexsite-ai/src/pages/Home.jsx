@@ -1,1027 +1,204 @@
 import { useState, useEffect } from "react";
-
 import Navbar from "../components/Navbar";
-import HeroSection from "../components/HeroSection";
 import SectionRenderer from "../components/SectionRenderer";
-import StatsPanel from "../components/StatsPanel";
-import TemplateCard from "../components/TemplateCard";
 import BackgroundEffects from "../components/BackgroundEffects";
 import HexagonBackground from "../components/HexagonBackground";
+import GridBackground from "../components/GridBackground";
+import WaveBackground from "../components/WaveBackground";
+import DotsBackground from "../components/DotsBackground";
 import Footer from "../components/Footer";
+import ChatSidebar from "../components/ChatSidebar";
+import TemplatesModal from "../components/TemplatesModal";
 
-import websiteConfigs from "../data/websiteConfigs";
 import themes from "../styles/themes";
+import { generateWebsite } from "../services/ai";
 
-function Home() {
-  const [websiteType, setWebsiteType] =
-    useState("portfolio");
-
-  const [isLoading, setIsLoading] =
-    useState(false);
-
-  const [customTitle, setCustomTitle] =
-    useState("");
-
-  const [customSubtitle, setCustomSubtitle] =
-    useState("");
-
-  const [activeSections, setActiveSections] =
-    useState(
-      websiteConfigs.portfolio.sections
-    );
-
-  const [themeType, setThemeType] =
-  useState("dark");
-
-const [aiPrompt, setAiPrompt] =
-  useState("");
-
-const [
-  customBackgroundColor,
-    setCustomBackgroundColor,
-  ] = useState("");
-
-  const [
-    customTextColor,
-    setCustomTextColor,
-  ] = useState("");
-
-  const currentWebsite =
-    websiteConfigs[websiteType];
-
-  const currentTheme = {
-    backgroundColor:
-      customBackgroundColor ||
-      themes[themeType].backgroundColor,
-
-    textColor:
-      customTextColor ||
-      themes[themeType].textColor,
-  };
-
-  useEffect(() => {
-    const savedConfig =
-      localStorage.getItem(
-        "nexsite-config"
-      );
-
-    if (savedConfig) {
-      const config =
-        JSON.parse(savedConfig);
-
-      setWebsiteType(
-        config.websiteType || "portfolio"
-      );
-
-      setThemeType(
-        config.themeType || "dark"
-      );
-
-      setCustomTitle(
-        config.customTitle || ""
-      );
-
-      setCustomSubtitle(
-        config.customSubtitle || ""
-      );
-
-      setActiveSections(
-        config.activeSections ||
-          websiteConfigs.portfolio.sections
-      );
-
-      setCustomBackgroundColor(
-        config.customBackgroundColor || ""
-      );
-
-      setCustomTextColor(
-        config.customTextColor || ""
-      );
+const defaultInitialConfig = {
+  websiteType: "business",
+  themeType: "dark",
+  backgroundType: "hexagon",
+  customTitle: "NexSite AI Builder",
+  customSubtitle: "Enter a prompt on the left to start generating your custom website.",
+  sections: [
+    {
+      type: "cta",
+      props: {
+        title: "AI Website Generator",
+        subtitle: "Enter a prompt on the left to start generating your custom website.",
+        buttonText: "Explore AI Builder"
+      }
     }
-  }, []);
-
-  useEffect(() => {
-    const config = {
-      websiteType,
-      themeType,
-      customTitle,
-      customSubtitle,
-      activeSections,
-      customBackgroundColor,
-      customTextColor,
-    };
-
-    localStorage.setItem(
-      "nexsite-config",
-      JSON.stringify(config)
-    );
-  }, [
-    websiteType,
-    themeType,
-    customTitle,
-    customSubtitle,
-    activeSections,
-    customBackgroundColor,
-    customTextColor,
-  ]);
-
-  useEffect(() => {
-    document.body.style.backgroundColor =
-      currentTheme.backgroundColor;
-  }, [currentTheme]);
-
-  const changeWebsite = (type) => {
-    setIsLoading(true);
-
-    setTimeout(() => {
-      setWebsiteType(type);
-
-      setThemeType(
-        websiteConfigs[type].theme
-      );
-
-      setActiveSections(
-        websiteConfigs[type].sections
-      );
-
-      setIsLoading(false);
-    }, 600);
-  };
-
- const toggleSection = (section) => {
-  if (activeSections.includes(section)) {
-    setActiveSections(
-      activeSections.filter(
-        (item) => item !== section
-      )
-    );
-  } else {
-    setActiveSections([
-      ...activeSections,
-      section,
-    ]);
-  }
+  ]
 };
 
-const generateWebsiteFromPrompt =
-  () => {
-    const prompt =
-      aiPrompt.toLowerCase();
+export default function Home() {
+  const [apiKey, setApiKey] = useState(import.meta.env.VITE_GEMINI_API_KEY || "");
+  const [siteConfig, setSiteConfig] = useState(() => {
+    const saved = localStorage.getItem("nexsite-gen-config");
+    return saved ? JSON.parse(saved) : defaultInitialConfig;
+  });
+  const [chatHistory, setChatHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showTemplatesModal, setShowTemplatesModal] = useState(false);
 
-    if (
-      prompt.includes("fitness") ||
-      prompt.includes("gym")
-    ) {
-      setWebsiteType("business");
+  useEffect(() => {
+    localStorage.setItem("nexsite-gen-config", JSON.stringify(siteConfig));
+  }, [siteConfig]);
 
-      setThemeType("dark");
+  const currentTheme = {
+    backgroundColor: siteConfig.customBackgroundColor || (themes[siteConfig.themeType] ? themes[siteConfig.themeType].backgroundColor : themes.dark.backgroundColor),
+    textColor: siteConfig.customTextColor || (themes[siteConfig.themeType] ? themes[siteConfig.themeType].textColor : themes.dark.textColor),
+  };
 
-      setCustomTitle(
-        "PowerFit Gym"
-      );
+  useEffect(() => {
+    document.body.style.backgroundColor = currentTheme.backgroundColor;
+  }, [currentTheme]);
 
-      setCustomSubtitle(
-        "Transform Your Body With Expert Training"
-      );
+  const handleGenerate = async (prompt) => {
+    setIsLoading(true);
+    const newHistory = [...chatHistory, { role: 'user', text: prompt }];
+    setChatHistory(newHistory);
 
-      setActiveSections([
-        "about",
-        "services",
-        "projects",
-      ]);
-    }
-
-    else if (
-      prompt.includes("photography") ||
-      prompt.includes("camera")
-    ) {
-      setWebsiteType(
-        "portfolio"
-      );
-
-      setThemeType("purple");
-
-      setCustomTitle(
-        "LensCraft Studio"
-      );
-
-      setCustomSubtitle(
-        "Capturing Moments That Matter"
-      );
-
-      setActiveSections([
-        "about",
-        "projects",
-      ]);
-    }
-
-    else if (
-      prompt.includes("startup") ||
-      prompt.includes("saas")
-    ) {
-      setWebsiteType("startup");
-
-      setThemeType("dark");
-
-      setCustomTitle(
-        "NextGen AI"
-      );
-
-      setCustomSubtitle(
-        "Building Future AI Solutions"
-      );
-
-      setActiveSections([
-        "about",
-        "services",
-        "projects",
-      ]);
-    }
-
-    else if (
-      prompt.includes("restaurant") ||
-      prompt.includes("food")
-    ) {
-      setWebsiteType("business");
-
-      setThemeType("dark");
-
-      setCustomTitle(
-        "Royal Taste"
-      );
-
-      setCustomSubtitle(
-        "Delicious Food Experience"
-      );
-
-      setActiveSections([
-        "about",
-        "services",
-        "projects",
-      ]);
-    }
-
-    else if (
-      prompt.includes("developer") ||
-      prompt.includes("programmer")
-    ) {
-      setWebsiteType(
-        "portfolio"
-      );
-
-      setThemeType("purple");
-
-      setCustomTitle(
-        "Alex Developer"
-      );
-
-      setCustomSubtitle(
-        "Full Stack Web Developer"
-      );
-
-      setActiveSections([
-        "about",
-        "projects",
-      ]);
-    }
-
-    else if (
-      prompt.includes("designer")
-    ) {
-      setWebsiteType(
-        "portfolio"
-      );
-
-      setThemeType("purple");
-
-      setCustomTitle(
-        "Creative Designer"
-      );
-
-      setCustomSubtitle(
-        "Designing Modern Experiences"
-      );
-
-      setActiveSections([
-        "about",
-        "projects",
-      ]);
-    }
-
-    else if (
-      prompt.includes("travel")
-    ) {
-      setWebsiteType("business");
-
-      setThemeType("dark");
-
-      setCustomTitle(
-        "Explore World"
-      );
-
-      setCustomSubtitle(
-        "Travel Beyond Limits"
-      );
-
-      setActiveSections([
-        "about",
-        "services",
-        "projects",
-      ]);
-    }
-
-    else if (
-      prompt.includes("gaming") ||
-      prompt.includes("game")
-    ) {
-      setWebsiteType("startup");
-
-      setThemeType("purple");
-
-      setCustomTitle(
-        "GameVerse"
-      );
-
-      setCustomSubtitle(
-        "Enter The Next Gaming Era"
-      );
-
-      setActiveSections([
-        "about",
-        "projects",
-        "services",
-      ]);
-    }
-
-    else if (
-      prompt.includes("doctor") ||
-      prompt.includes("hospital")
-    ) {
-      setWebsiteType("business");
-
-      setThemeType("light");
-
-      setCustomTitle(
-        "HealthCare Plus"
-      );
-
-      setCustomSubtitle(
-        "Caring For Better Tomorrow"
-      );
-
-      setActiveSections([
-        "about",
-        "services",
-      ]);
-    }
-
-    else if (
-      prompt.includes("lawyer")
-    ) {
-      setWebsiteType("business");
-
-      setThemeType("dark");
-
-      setCustomTitle(
-        "Justice Law Firm"
-      );
-
-      setCustomSubtitle(
-        "Professional Legal Services"
-      );
-
-      setActiveSections([
-        "about",
-        "services",
-      ]);
-    }
-
-    else {
-      setWebsiteType(
-        "portfolio"
-      );
-
-      setThemeType("dark");
-
-      setCustomTitle(
-        "Creative Portfolio"
-      );
-
-      setCustomSubtitle(
-        "Modern Digital Experiences"
-      );
-
-      setActiveSections([
-        "about",
-        "projects",
-      ]);
+    try {
+      const newConfig = await generateWebsite(apiKey, prompt, siteConfig);
+      setSiteConfig(newConfig);
+      setChatHistory([...newHistory, { role: 'ai', text: 'Website updated successfully!' }]);
+    } catch (error) {
+      setChatHistory([...newHistory, { role: 'ai', text: `Error: ${error.message}` }]);
+    } finally {
+      setIsLoading(false);
     }
   };
-  const exportConfiguration = () => {
-    const config = {
-      websiteType,
-      themeType,
-      customTitle,
-      customSubtitle,
-      activeSections,
-      customBackgroundColor,
-      customTextColor,
-    };
 
-    const configText = JSON.stringify(
-      config,
-      null,
-      2
-    );
+  const handleReset = () => {
+    setSiteConfig(defaultInitialConfig);
+    setChatHistory([]);
+    localStorage.removeItem("nexsite-gen-config");
+  };
 
-    const blob = new Blob(
-      [configText],
-      {
-        type: "application/json",
-      }
-    );
+  const handleExport = () => {
+    const previewElement = document.getElementById("export-preview-container");
+    if (!previewElement) return;
+    const htmlContent = previewElement.innerHTML;
 
-    const url =
-      URL.createObjectURL(blob);
+    let cssContent = "";
+    document.querySelectorAll("style, link[rel='stylesheet']").forEach(el => {
+      cssContent += el.outerHTML + "\n";
+    });
 
-    const link =
-      document.createElement("a");
+    const fullHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${siteConfig.customTitle || "NexSite Export"}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Bebas+Neue&family=Cinzel:wght@400;700&family=Cormorant+Garamond:wght@400;600;700&family=Fira+Code:wght@400;700&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&family=Lora:wght@400;700&family=Merriweather:wght@400;700&family=Montserrat:wght@300;400;500;600;700;800;900&family=Oswald:wght@400;700&family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Poppins:wght@300;400;500;600;700;800;900&family=Righteous&family=Roboto:wght@300;400;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+  ${cssContent}
+  <style>
+    body { 
+      margin: 0; padding: 0; 
+      background-color: ${currentTheme.backgroundColor}; 
+      color: ${currentTheme.textColor}; 
+      font-family: ${siteConfig.fontFamily || "'Inter', sans-serif"}; 
+      --current-bg: ${currentTheme.backgroundColor};
+      --current-text: ${currentTheme.textColor};
+    }
+  </style>
+</head>
+<body>
+  <div style="max-width: 1200px; margin: 0 auto; padding: 40px 20px;">
+    ${htmlContent}
+  </div>
+</body>
+</html>`;
 
-    link.href = url;
-
-    link.download =
-      "website-config.json";
-
-    link.click();
-
+    const blob = new Blob([fullHTML], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "my-nexsite-portfolio.html";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
-  const importConfiguration = (event) => {
-    const file = event.target.files[0];
-
-    if (!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = (e) => {
-      const config = JSON.parse(
-        e.target.result
-      );
-
-      setWebsiteType(
-        config.websiteType || "portfolio"
-      );
-
-      setThemeType(
-        config.themeType || "dark"
-      );
-
-      setCustomTitle(
-        config.customTitle || ""
-      );
-
-      setCustomSubtitle(
-        config.customSubtitle || ""
-      );
-
-      setActiveSections(
-        config.activeSections ||
-          websiteConfigs.portfolio.sections
-      );
-
-      setCustomBackgroundColor(
-        config.customBackgroundColor || ""
-      );
-
-      setCustomTextColor(
-        config.customTextColor || ""
-      );
-    };
-
-    reader.readAsText(file);
-  };
-
-  const resetBuilder = () => {
-    setWebsiteType("portfolio");
-
-    setThemeType("dark");
-
-    setCustomTitle("");
-
-    setCustomSubtitle("");
-
-    setActiveSections(
-      websiteConfigs.portfolio.sections
-    );
-
-    setCustomBackgroundColor("");
-
-    setCustomTextColor("");
-
-    localStorage.removeItem(
-      "nexsite-config"
-    );
-  };
-
-  const buttonStyle = {
-    padding: "12px 18px",
-
-    margin: "5px",
-
-    border: "none",
-
-    borderRadius: "12px",
-
-    cursor: "pointer",
-
-    fontSize: "15px",
-
-    fontWeight: "600",
-
-    transition: "0.3s",
-
-    background:
-      "linear-gradient(135deg,#9333ea,#2563eb)",
-
-    color: "white",
-
-    boxShadow:
-      "0 6px 18px rgba(147,51,234,0.3)",
-  };
-
-  const inputStyle = {
-    padding: "12px",
-
-    margin: "10px",
-
-    borderRadius: "12px",
-
-    border:
-      "1px solid rgba(255,255,255,0.08)",
-
-    width: "100%",
-
-    maxWidth: "300px",
-
-    background:
-      "rgba(255,255,255,0.06)",
-
-    color: "white",
-
-    backdropFilter: "blur(12px)",
-  };
-
-  const hoverIn = (e) => {
-    e.target.style.transform =
-      "translateY(-3px) scale(1.03)";
-  };
-
-  const hoverOut = (e) => {
-    e.target.style.transform =
-      "translateY(0px) scale(1)";
-  };
-
   return (
-    <div
-      style={{
-        position: "relative",
+    <div style={{
+      "--current-bg": currentTheme.backgroundColor,
+      "--current-text": currentTheme.textColor,
+      position: "relative",
+      overflow: "hidden",
+      zIndex: 1,
+      backgroundColor: currentTheme.backgroundColor,
+      color: currentTheme.textColor,
+      fontFamily: siteConfig.fontFamily || "'Inter', sans-serif",
+      minHeight: "100vh",
+      transition: "0.3s",
+    }}>
+      {showTemplatesModal && (
+        <TemplatesModal 
+          onClose={() => setShowTemplatesModal(false)} 
+          onSelectTemplate={(config) => {
+            setSiteConfig(config);
+            setChatHistory([...chatHistory, { role: 'ai', text: 'Template applied successfully! Feel free to modify it further.' }]);
+            setShowTemplatesModal(false);
+          }} 
+        />
+      )}
 
-overflow: "hidden",
-
-zIndex: 1,
-        backgroundColor:
-          currentTheme.backgroundColor,
-
-        color: currentTheme.textColor,
-
-        minHeight: "100vh",
-
-        padding: "20px",
-
-        transition: "0.3s",
-      }}
-    >
-      <HexagonBackground />
-
-<BackgroundEffects />
-
-      <Navbar />
-
-      <div
-        style={{
-          maxWidth: "1400px",
-
-          margin: "0 auto",
-
-          display: "flex",
-
-          gap: "30px",
-
-          alignItems: "flex-start",
-
-          flexWrap: "wrap",
+      {/* Flat solid backgrounds only */}
+      
+      <Navbar 
+        onHomeClick={() => {
+          handleReset();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
-      >
-        <div
-          style={{
-            width: "350px",
+        onTemplatesClick={() => setShowTemplatesModal(true)}
+        onBuilderClick={() => document.getElementById('ai-prompt-input')?.focus()}
+        onContactClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
+        onExportClick={handleExport}
+      />
+      
+      <div style={{ 
+        display: "flex", 
+        maxWidth: "1600px", 
+        margin: "0 auto", 
+        padding: "0 20px", 
+        gap: "40px", 
+        alignItems: "flex-start" 
+      }}>
+        {/* Left Sidebar */}
+        <ChatSidebar 
+          apiKey={apiKey}
+          onGenerate={handleGenerate}
+          onReset={handleReset}
+          isLoading={isLoading}
+          history={chatHistory}
+        />
 
-            position: "sticky",
-
-            top: "20px",
-
-           background:
-  "rgba(10,15,30,0.45)",
-
-            backdropFilter: "blur(18px)",
-
-            border:
-              "1px solid rgba(255,255,255,0.06)",
-
-            boxShadow:
-              "0 10px 30px rgba(0,0,0,0.25)",
-
-            padding: "20px",
-
-            borderRadius: "24px",
-          }}
-        >
-          <div
-            style={{
-              marginBottom: "30px",
-            }}
-          >
-            <h2>
-              Active Website:
-              {" "}
-              {websiteType.toUpperCase()}
-            </h2>
-
-            <p>
-              Current Theme:
-              {" "}
-              {themeType.toUpperCase()}
-            </p>
-          </div>
-
-          <StatsPanel
-            websiteType={websiteType}
-            themeType={themeType}
-            activeSections={activeSections}
-            customTitle={customTitle}
-          />
-
-          <div
-            style={{
-              marginBottom: "20px",
-            }}
-          >
-            <TemplateCard
-              title="Portfolio Website"
-              description="Personal portfolio and showcase website"
-              onClick={() =>
-                changeWebsite("portfolio")
-              }
-            />
-
-            <TemplateCard
-              title="Business Website"
-              description="Modern business landing page"
-              onClick={() =>
-                changeWebsite("business")
-              }
-            />
-
-            <TemplateCard
-              title="Startup Website"
-              description="Startup SaaS product website"
-              onClick={() =>
-                changeWebsite("startup")
-              }
-            />
-          </div>
-
-          <div
-  style={{
-    marginBottom: "30px",
-  }}
->
-  <h2
-    style={{
-      marginBottom: "15px",
-    }}
-  >
-    AI Website Generator
-  </h2>
-
-  <input
-    type="text"
-    placeholder="Describe your website..."
-    value={aiPrompt}
-    onChange={(e) =>
-      setAiPrompt(
-        e.target.value
-      )
-    }
-    style={inputStyle}
-  />
-
-  <button
-    style={buttonStyle}
-    onMouseOver={hoverIn}
-    onMouseOut={hoverOut}
-    onClick={
-      generateWebsiteFromPrompt
-    }
-  >
-    Generate AI Website
-  </button>
-</div>
-
-<div
-  style={{
-    marginTop: "20px",
-    marginBottom: "20px",
-  }}
->
-            <button
-              style={buttonStyle}
-              onMouseOver={hoverIn}
-              onMouseOut={hoverOut}
-              onClick={() =>
-                setThemeType("dark")
-              }
-            >
-              Dark
-            </button>
-
-            <button
-              style={buttonStyle}
-              onMouseOver={hoverIn}
-              onMouseOut={hoverOut}
-              onClick={() =>
-                setThemeType("light")
-              }
-            >
-              Light
-            </button>
-
-            <button
-              style={buttonStyle}
-              onMouseOver={hoverIn}
-              onMouseOut={hoverOut}
-              onClick={() =>
-                setThemeType("purple")
-              }
-            >
-              Purple
-            </button>
-          </div>
-
-          <div
-            style={{
-              marginTop: "20px",
-              marginBottom: "20px",
-            }}
-          >
-            <p>Background Color</p>
-
-            <input
-              type="color"
-              value={
-                customBackgroundColor ||
-                "#000000"
-              }
-              onChange={(e) =>
-                setCustomBackgroundColor(
-                  e.target.value
-                )
-              }
-            />
-
-            <p>Text Color</p>
-
-            <input
-              type="color"
-              value={
-                customTextColor ||
-                "#ffffff"
-              }
-              onChange={(e) =>
-                setCustomTextColor(
-                  e.target.value
-                )
-              }
-            />
-          </div>
-
-          <div
-            style={{
-              marginBottom: "30px",
-            }}
-          >
-            <input
-              type="text"
-              placeholder="Enter website title"
-              value={customTitle}
-              onChange={(e) =>
-                setCustomTitle(
-                  e.target.value
-                )
-              }
-              style={inputStyle}
-            />
-
-            <input
-              type="text"
-              placeholder="Enter website subtitle"
-              value={customSubtitle}
-              onChange={(e) =>
-                setCustomSubtitle(
-                  e.target.value
-                )
-              }
-              style={inputStyle}
-            />
-          </div>
-
-          <div
-            style={{
-              marginBottom: "30px",
-            }}
-          >
-            <button
-              style={buttonStyle}
-              onMouseOver={hoverIn}
-              onMouseOut={hoverOut}
-              onClick={() =>
-                toggleSection("about")
-              }
-            >
-              Toggle About
-            </button>
-
-            <button
-              style={buttonStyle}
-              onMouseOver={hoverIn}
-              onMouseOut={hoverOut}
-              onClick={() =>
-                toggleSection("projects")
-              }
-            >
-              Toggle Projects
-            </button>
-
-            <button
-              style={buttonStyle}
-              onMouseOver={hoverIn}
-              onMouseOut={hoverOut}
-              onClick={() =>
-                toggleSection("services")
-              }
-            >
-              Toggle Services
-            </button>
-
-            <button
-              style={buttonStyle}
-              onMouseOver={hoverIn}
-              onMouseOut={hoverOut}
-              onClick={exportConfiguration}
-            >
-              Export Configuration
-            </button>
-
-            <button
-              style={buttonStyle}
-              onMouseOver={hoverIn}
-              onMouseOut={hoverOut}
-              onClick={resetBuilder}
-            >
-              Reset Builder
-            </button>
-
-            <div
-              style={{
-                marginTop: "15px",
-              }}
-            >
-              <input
-                type="file"
-                accept=".json"
-                onChange={
-                  importConfiguration
-                }
-              />
-            </div>
-          </div>
-        </div>
-
-        <div
-          style={{
-            flex: 1,
-            minWidth: "300px",
-          }}
-        >
-          {isLoading && (
-            <div
-              style={{
-                padding: "30px",
-
-                borderRadius: "24px",
-
-                marginBottom: "20px",
-
-                textAlign: "center",
-background:
-  "rgba(10,15,30,0.45)",
-
-                backdropFilter: "blur(18px)",
-
-                border:
-                  "1px solid rgba(255,255,255,0.06)",
-
-                boxShadow:
-                  "0 10px 30px rgba(0,0,0,0.25)",
-              }}
-            >
-              <h2>
-                Generating Website...
-              </h2>
-
-              <p>
-                Building AI powered layout
+        {/* Right Main Content */}
+        <main style={{ flex: 1, paddingBottom: "40px", minHeight: "80vh" }}>
+          <div id="export-preview-container">
+            <div style={{ textAlign: "center", marginBottom: "60px", paddingTop: "20px" }}>
+              <h1 style={{ fontSize: "3.5rem", fontWeight: "800", marginBottom: "15px", letterSpacing: "-1px" }}>
+                {siteConfig.customTitle}
+              </h1>
+              <p style={{ fontSize: "1.2rem", opacity: 0.8, maxWidth: "600px", margin: "0 auto" }}>
+                {siteConfig.customSubtitle}
               </p>
             </div>
-          )}
 
-          <div
-            style={{
-              marginTop: "20px",
-
-              padding: "30px",
-
-              borderRadius: "24px",
-
-             background:
-  "rgba(10,15,30,0.45)",
-
-              backdropFilter: "blur(18px)",
-
-              border:
-                "1px solid rgba(255,255,255,0.06)",
-
-              boxShadow:
-                "0 10px 30px rgba(0,0,0,0.25)",
-            }}
-          >
-            <h2
-              style={{
-                marginBottom: "30px",
-              }}
-            >
-              Generated Website Preview
-            </h2>
-
-            <HeroSection
-              title={
-                customTitle ||
-                currentWebsite.title
-              }
-              subtitle={
-                customSubtitle ||
-                currentWebsite.subtitle
-              }
-            />
-
-            <div
-              style={{
-                display: "flex",
-
-                flexWrap: "wrap",
-
-                gap: "20px",
-
-                justifyContent: "center",
-              }}
-            >
-              {activeSections.map(
-                (section, index) => (
-                  <SectionRenderer
-                    key={index}
-                    section={section}
-                  />
-                )
-              )}
+            <div style={{ display: "flex", flexDirection: "column", gap: "25px" }}>
+              {siteConfig.sections?.map((section, idx) => (
+                <SectionRenderer key={idx} section={section} />
+              ))}
             </div>
-
-            <Footer />
           </div>
-        </div>
+        </main>
       </div>
+
+      <Footer />
     </div>
   );
 }
-
-export default Home;

@@ -1,210 +1,39 @@
-import {
-  FaGithub,
-  FaLinkedin,
-  FaGlobe,
-} from "react-icons/fa";
-
-function Footer() {
+export default function Footer() {
   return (
-    <footer
-      style={{
-        marginTop: "50px",
-
-        padding: "35px 25px",
-
-        borderRadius: "28px",
-
-        background:
-          "linear-gradient(135deg,rgba(15,23,42,0.72),rgba(30,41,59,0.58))",
-
-        backdropFilter: "blur(18px)",
-
-        textAlign: "center",
-
-        border:
-          "1px solid rgba(255,255,255,0.06)",
-
-        boxShadow:
-          "0 12px 35px rgba(0,0,0,0.25)",
-
-        position: "relative",
-
-        overflow: "hidden",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-
-          width: "240px",
-
-          height: "240px",
-
-          background:
-            "rgba(168,85,247,0.12)",
-
-          borderRadius: "50%",
-
-          filter: "blur(100px)",
-
-          top: "-100px",
-
-          right: "-100px",
-        }}
-      />
-
-      <h2
-        style={{
-          fontSize: "32px",
-
-          marginBottom: "12px",
-
-          fontWeight: "800",
-
-          background:
-            "linear-gradient(90deg,#c084fc,#60a5fa)",
-
-          WebkitBackgroundClip: "text",
-
-          WebkitTextFillColor:
-            "transparent",
-
-          position: "relative",
-
-          zIndex: 1,
-        }}
-      >
-        NexSite AI
-      </h2>
-
-      <p
-        style={{
-          color:
-            "rgba(255,255,255,0.75)",
-
-          fontSize: "16px",
-
-          marginBottom: "24px",
-
-          position: "relative",
-
-          zIndex: 1,
-        }}
-      >
-        AI Powered Website Builder
-        with futuristic UI & smart
-        generation system.
-      </p>
-
-      <div
-        style={{
-          display: "flex",
-
-          justifyContent: "center",
-
-          gap: "18px",
-
-          marginBottom: "25px",
-
-          position: "relative",
-
-          zIndex: 1,
-        }}
-      >
-        <div
-          style={{
-            width: "46px",
-
-            height: "46px",
-
-            borderRadius: "50%",
-
-            display: "flex",
-
-            alignItems: "center",
-
-            justifyContent: "center",
-
-            background:
-              "rgba(255,255,255,0.06)",
-
-            cursor: "pointer",
-
-            transition: "0.3s",
-          }}
-        >
-          <FaGithub color="white" />
+    <footer style={{ marginTop: "60px", padding: "60px 40px", borderTop: "1px solid rgba(255,255,255,0.1)", background: "#1f2937", borderRadius: "24px 24px 0 0" }}>
+      <div style={{ maxWidth: "1200px", margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "40px" }}>
+        
+        <div>
+          <h2 style={{ fontSize: "1.8rem", fontWeight: "800", color: "var(--current-text, #ffffff)", marginBottom: "20px" }}>
+            NexSite AI
+          </h2>
+          <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.95rem" }}>
+            Empowering creators to build stunning digital experiences in seconds, not weeks.
+          </p>
         </div>
 
-        <div
-          style={{
-            width: "46px",
-
-            height: "46px",
-
-            borderRadius: "50%",
-
-            display: "flex",
-
-            alignItems: "center",
-
-            justifyContent: "center",
-
-            background:
-              "rgba(255,255,255,0.06)",
-
-            cursor: "pointer",
-
-            transition: "0.3s",
-          }}
-        >
-          <FaLinkedin color="white" />
+        <div>
+          <h3 style={{ fontSize: "1.2rem", marginBottom: "15px", color: "var(--current-text, #ffffff)" }}>Links</h3>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
+            <li><a href="#" style={{ color: "rgba(255,255,255,0.6)", textDecoration: "none" }}>Home</a></li>
+            <li><a href="#" style={{ color: "rgba(255,255,255,0.6)", textDecoration: "none" }}>Features</a></li>
+            <li><a href="#" style={{ color: "rgba(255,255,255,0.6)", textDecoration: "none" }}>Pricing</a></li>
+          </ul>
         </div>
 
-        <div
-          style={{
-            width: "46px",
-
-            height: "46px",
-
-            borderRadius: "50%",
-
-            display: "flex",
-
-            alignItems: "center",
-
-            justifyContent: "center",
-
-            background:
-              "rgba(255,255,255,0.06)",
-
-            cursor: "pointer",
-
-            transition: "0.3s",
-          }}
-        >
-          <FaGlobe color="white" />
+        <div>
+          <h3 style={{ fontSize: "1.2rem", marginBottom: "15px", color: "var(--current-text, #ffffff)" }}>Legal</h3>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
+            <li><a href="#" style={{ color: "rgba(255,255,255,0.6)", textDecoration: "none" }}>Privacy Policy</a></li>
+            <li><a href="#" style={{ color: "rgba(255,255,255,0.6)", textDecoration: "none" }}>Terms of Service</a></li>
+          </ul>
         </div>
+
       </div>
-
-      <p
-        style={{
-          color:
-            "rgba(255,255,255,0.55)",
-
-          fontSize: "14px",
-
-          position: "relative",
-
-          zIndex: 1,
-        }}
-      >
-        © 2026 NexSite AI — Built
-        with React & Creative AI
-        Concepts
-      </p>
+      
+      <div style={{ textAlign: "center", marginTop: "40px", paddingTop: "20px", borderTop: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.4)", fontSize: "0.85rem" }}>
+        © {new Date().getFullYear()} NexSite AI. All rights reserved.
+      </div>
     </footer>
   );
 }
-
-export default Footer;
